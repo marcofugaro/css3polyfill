@@ -1,372 +1,12 @@
-/**
- *  CSS3polyfill - v1.0.0
- *  A CSS3 polyfill collection for IE8 
- *  https://github.com/marcofugaro/css3polyfill
+/*
+*  CSS3polyfill - v1.0.0
+*  A CSS3 polyfill collection for IE8
+*  https://github.com/marcofugaro/css3polyfill
+*  License: MIT
 **/
 
-
 /*
-vminpoly | https://github.com/saabi/vminpoly
-*/
-(function() {
-  var XMLHttpFactories, ajax, applyStyleTest, browserSupportsUnitsNatively, clearStyleTests, createXMLHTTPObject, getViewportSize, initLayoutEngine, testElementStyle, testVHSupport, testVMinSupport, testVWSupport;
-
-  XMLHttpFactories = [
-    function() {
-      return new XMLHttpRequest();
-    }, function() {
-      return new ActiveXObject("Msxml2.XMLHTTP");
-    }, function() {
-      return new ActiveXObject("Msxml3.XMLHTTP");
-    }, function() {
-      return new ActiveXObject("Microsoft.XMLHTTP");
-    }
-  ];
-
-  createXMLHTTPObject = function() {
-    var e, i, xmlhttp;
-    xmlhttp = false;
-    i = 0;
-    while (i < XMLHttpFactories.length) {
-      try {
-        xmlhttp = XMLHttpFactories[i++]();
-      } catch (_error) {
-        e = _error;
-        continue;
-      }
-      break;
-    }
-    return xmlhttp;
-  };
-
-  ajax = function(url, onload) {
-    var e, xmlhttp;
-    xmlhttp = createXMLHTTPObject();
-    xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState !== 4) {
-        return;
-      }
-      if (!(xmlhttp.status === 200 || url.match(/^file:\/\/\//))) {
-        throw "Error!";
-      }
-      console.log("INFO: processing " + url);
-      onload(xmlhttp.responseText);
-    };
-    try {
-      xmlhttp.open("GET", url, true);
-      xmlhttp.send();
-    } catch (_error) {
-      e = _error;
-      console.log("ERROR: " + e.message + " (" + e.type + ") when accessing " + url);
-    }
-  };
-
-  getViewportSize = function() {
-    var x, y;
-    x = 0;
-    y = 0;
-    if (window.innerHeight) {
-      x = window.innerWidth;
-      y = window.innerHeight;
-    } else if (document.documentElement && document.documentElement.clientHeight) {
-      x = document.documentElement.clientWidth;
-      y = document.documentElement.clientHeight;
-    } else if (document.body) {
-      x = document.body.clientWidth;
-      y = document.body.clientHeight;
-    }
-    return {
-      width: x,
-      height: y
-    };
-  };
-
-  browserSupportsUnitsNatively = function() {
-    var body, head, style_block, test_element, test_results;
-    test_element = document.createElement('div');
-    test_element.id = "vminpolyTests";
-    body = document.getElementsByTagName('body')[0];
-    body.appendChild(test_element);
-    style_block = document.createElement('style');
-    head = document.getElementsByTagName('head')[0];
-    head.appendChild(style_block);
-    test_results = testVWSupport(test_element, style_block) && testVWSupport(test_element, style_block) && testVMinSupport(test_element, style_block);
-    body.removeChild(test_element);
-    head.removeChild(style_block);
-    return test_results;
-  };
-
-  testElementStyle = function(element) {
-    if (window.getComputedStyle) {
-      return getComputedStyle(element, null);
-    } else {
-      return element.currentStyle;
-    }
-  };
-
-  applyStyleTest = function(style_block, style) {
-    var new_style, test_style;
-    new_style = "#vminpolyTests { " + style + "; }";
-    if (style_block.styleSheet) {
-      return style_block.styleSheet.cssText = new_style;
-    } else {
-      test_style = document.createTextNode(new_style);
-      return style_block.appendChild(test_style);
-    }
-  };
-
-  clearStyleTests = function(style_block) {
-    if (style_block.styleSheet) {
-      return style_block.styleSheet.cssText = '';
-    } else {
-      return style_block.innerHTML = '';
-    }
-  };
-
-  testVHSupport = function(element, style_block) {
-    var comp_style, height;
-    applyStyleTest(style_block, 'height: 50vh');
-    height = parseInt(window.innerHeight / 2, 10);
-    comp_style = parseInt(testElementStyle(element).height, 10);
-    clearStyleTests(style_block);
-    return comp_style === height;
-  };
-
-  testVWSupport = function(element, style_block) {
-    var comp_style, width;
-    applyStyleTest(style_block, 'width: 50vw');
-    width = parseInt(window.innerWidth / 2, 10);
-    comp_style = parseInt(testElementStyle(element).width, 10);
-    clearStyleTests(style_block);
-    return comp_style === width;
-  };
-
-  testVMinSupport = function(element, style_block) {
-    var actual_vmin, comp_width, docElement, one_vh, one_vw;
-    applyStyleTest(style_block, 'width: 50vmin');
-    docElement = document.documentElement;
-    one_vw = docElement.clientWidth / 100;
-    one_vh = docElement.clientHeight / 100;
-    actual_vmin = parseInt(Math.min(one_vw, one_vh) * 50, 10);
-    comp_width = parseInt(testElementStyle(element).width, 10);
-    clearStyleTests(style_block);
-    return actual_vmin === comp_width;
-  };
-
-  initLayoutEngine = function() {
-    var analyzeStyleRule, analyzeStylesheet, head, i, innerSheetCount, links, onresize, outerSheetCount, sheets, styleElement, _i, _len;
-    analyzeStyleRule = function(rule) {
-      var declaration, declarations, hasDimension, token, _i, _j, _len, _len1, _ref, _ref1;
-      declarations = [];
-      _ref = rule.value;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        declaration = _ref[_i];
-        hasDimension = false;
-        _ref1 = declaration.value;
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          token = _ref1[_j];
-          if (token.tokenType === 'DIMENSION' && (token.unit === 'vmin' || token.unit === 'vh' || token.unit === 'vw')) {
-            hasDimension = true;
-          }
-        }
-        if (hasDimension) {
-          declarations.push(declaration);
-        }
-      }
-      rule.value = declarations;
-      return declarations;
-    };
-    analyzeStylesheet = function(sheet) {
-      var atRules, decs, rule, rules, _i, _len, _ref;
-      rules = [];
-      _ref = sheet.value;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        rule = _ref[_i];
-        switch (rule.type) {
-          case 'STYLE-RULE':
-            decs = analyzeStyleRule(rule);
-            if (decs.length !== 0) {
-              rules.push(rule);
-            }
-            break;
-          case 'AT-RULE':
-            atRules = analyzeStylesheet(rule);
-            if (atRules.length !== 0) {
-              rules.push(rule);
-            }
-        }
-      }
-      sheet.value = rules;
-      return rules;
-    };
-    onresize = function() {
-      var css, dims, generateRuleCode, generateSheetCode, map, sheet, url, vpAspectRatio, vpDims;
-      vpDims = getViewportSize();
-      dims = {
-        vh: vpDims.height / 100,
-        vw: vpDims.width / 100
-      };
-      dims.vmin = Math.min(dims.vh, dims.vw);
-      vpAspectRatio = vpDims.width / vpDims.height;
-      map = function(a, f) {
-        var a1, e, _i, _len;
-        if (a.map != null) {
-          return a.map(f);
-        } else {
-          a1 = [];
-          for (_i = 0, _len = a.length; _i < _len; _i++) {
-            e = a[_i];
-            a1.push(f(e));
-          }
-          return a1;
-        }
-      };
-      generateRuleCode = function(rule) {
-        var declaration, declarations, ruleCss, token, _i, _j, _len, _len1, _ref, _ref1;
-        declarations = [];
-        ruleCss = (map(rule.selector, function(o) {
-          if (o.toSourceString != null) {
-            return o.toSourceString();
-          } else {
-            return '';
-          }
-        })).join('');
-        ruleCss += "{";
-        _ref = rule.value;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          declaration = _ref[_i];
-          ruleCss += declaration.name;
-          ruleCss += ":";
-          _ref1 = declaration.value;
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            token = _ref1[_j];
-            if (token.tokenType === 'DIMENSION' && (token.unit === 'vmin' || token.unit === 'vh' || token.unit === 'vw')) {
-              ruleCss += "" + (Math.floor(token.num * dims[token.unit])) + "px";
-            } else {
-              ruleCss += token.toSourceString();
-            }
-          }
-          ruleCss += ";";
-        }
-        ruleCss += "}\r";
-        return ruleCss;
-      };
-      generateSheetCode = function(sheet) {
-        var mar, nums, prelude, rule, sheetCss, source, t, t1, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
-        sheetCss = '';
-        _ref = sheet.value;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          rule = _ref[_i];
-          switch (rule.type) {
-            case 'STYLE-RULE':
-              sheetCss += generateRuleCode(rule);
-              break;
-            case 'AT-RULE':
-              if (rule.name === 'media') {
-                prelude = '';
-                mar = false;
-                nums = [];
-                _ref1 = rule.prelude;
-                for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-                  t = _ref1[_j];
-                  if (t.name === '(') {
-                    prelude += '(';
-                    _ref2 = t.value;
-                    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-                      t1 = _ref2[_k];
-                      source = t1.toSourceString != null ? t1.toSourceString() : '';
-                      if (t1.tokenType === 'IDENT' && source === 'max-aspect-ratio') {
-                        mar = true;
-                      }
-                      if (t1.tokenType === 'NUMBER') {
-                        nums.push(parseInt(source));
-                      }
-                      prelude += source;
-                    }
-                    prelude += ')';
-                  } else {
-                    prelude += t.toSourceString();
-                  }
-                }
-                if (vpAspectRatio < nums[0] / nums[1]) {
-                  sheetCss += generateSheetCode(rule);
-                }
-              } else {
-                prelude = '';
-                _ref3 = rule.prelude;
-                for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-                  t = _ref3[_l];
-                  if (t.name === '(') {
-                    prelude += '(';
-                    prelude += (map(t.value, function(o) {
-                      if (o.toSourceString != null) {
-                        return o.toSourceString();
-                      } else {
-                        return '';
-                      }
-                    })).join('');
-                    prelude += ')';
-                  } else {
-                    prelude += t.toSourceString();
-                  }
-                }
-                sheetCss += "@" + rule.name + " " + prelude + " {";
-                sheetCss += generateSheetCode(rule);
-                sheetCss += '}\n';
-              }
-          }
-        }
-        return sheetCss;
-      };
-      css = '';
-      for (url in sheets) {
-        sheet = sheets[url];
-        css += generateSheetCode(sheet);
-      }
-      if (styleElement.styleSheet != null) {
-        return styleElement.styleSheet.cssText = css;
-      } else {
-        return styleElement.innerHTML = css;
-      }
-    };
-    sheets = {};
-    styleElement = document.createElement('style');
-    head = document.getElementsByTagName('head')[0];
-    head.appendChild(styleElement);
-    links = document.getElementsByTagName('link');
-    innerSheetCount = 0;
-    outerSheetCount = 0;
-    for (_i = 0, _len = links.length; _i < _len; _i++) {
-      i = links[_i];
-      if (i.rel !== 'stylesheet') {
-        continue;
-      }
-      innerSheetCount++;
-      ajax(i.href, function(cssText) {
-        var sheet, tokenlist;
-        tokenlist = tokenize(cssText);
-        sheet = parse(tokenlist);
-        analyzeStylesheet(sheet);
-        sheets[i.href] = sheet;
-        outerSheetCount++;
-        if (outerSheetCount === innerSheetCount) {
-          window.onresize();
-        }
-      });
-    }
-    window.onresize = onresize;
-  };
-
-  console.log('About to do the engine unless...', browserSupportsUnitsNatively());
-
-  if (!browserSupportsUnitsNatively()) {
-    initLayoutEngine();
-  }
-
-}).call(this);
-
-/*
-background-size-emu | https://github.com/Metafalica/background-size-emu
+* background-size-emu | https://github.com/Metafalica/background-size-emu
 */
 
 (function ()
@@ -753,7 +393,7 @@ background-size-emu | https://github.com/Metafalica/background-size-emu
         var splitted_pos = Array(
             BgSzEmu.prototype.getCSSPropertyValue(elem, "background-position-x", "backgroundPositionX"),
             BgSzEmu.prototype.getCSSPropertyValue(elem, "background-position-y", "backgroundPositionY")
-    );
+		);
 
         var h_pos_ = (splitted_pos[0] ? BgSzEmu.prototype.parseBgPosVal(splitted_pos[0]) : { value: "0", is_percents: true });
         var v_pos_ = (splitted_pos[1] ? BgSzEmu.prototype.parseBgPosVal(splitted_pos[1]) : { value: "0", is_percents: true });
@@ -829,544 +469,544 @@ background-size-emu | https://github.com/Metafalica/background-size-emu
 })();
 
 /*
-calc-polyfill | https://github.com/closingtag/calc-polyfill
+* calc-polyfill | https://github.com/closingtag/calc-polyfill
 */
 
 (function (win, doc) {
 
-  'use strict';
+	'use strict';
 
-  // Avoid `console` errors in browsers that lack a console.
-  (function() {
-    var method;
-    var noop = function () {};
-    var methods = ['assert', 'clear', 'count', 'debug', 'dir', 'dirxml', 'error','exception', 'group', 'groupCollapsed', 'groupEnd', 'info', 'log','markTimeline', 'profile', 'profileEnd', 'table', 'time', 'timeEnd','timeline', 'timelineEnd', 'timeStamp', 'trace', 'warn'];
+	// Avoid `console` errors in browsers that lack a console.
+	(function() {
+		var method;
+		var noop = function () {};
+		var methods = ['assert', 'clear', 'count', 'debug', 'dir', 'dirxml', 'error','exception', 'group', 'groupCollapsed', 'groupEnd', 'info', 'log','markTimeline', 'profile', 'profileEnd', 'table', 'time', 'timeEnd','timeline', 'timelineEnd', 'timeStamp', 'trace', 'warn'];
 
-    var length = methods.length;
-    var console = (window.console = window.console || {});
+		var length = methods.length;
+		var console = (window.console = window.console || {});
 
-    while (length--) {
-      method = methods[length];
+		while (length--) {
+			method = methods[length];
 
-      // Only stub undefined methods.
-      if (!console[method]) {
-        console[method] = noop;
-      }
-    }
-  }());
+			// Only stub undefined methods.
+			if (!console[method]) {
+				console[method] = noop;
+			}
+		}
+	}());
 
-  // We need document.querySelectorAll as we do not want to depend on any lib
+	// We need document.querySelectorAll as we do not want to depend on any lib
 
-  if (!doc.querySelectorAll) {
-    return false;
-  }
+	if (!doc.querySelectorAll) {
+		return false;
+	}
 
-  var
+	var
 
-  EMPTY = '',
-  CALC_RULE = '^(\\s*?[\\s\\S]*):(\\s*?[\\s\\S]*?((\\-(webkit|moz)\\-)?calc\\(([\\s\\S]+)\\))[\\s\\S]*)?$',
-  CSSRULES = '((\\s*?@media[\\s\\S]*?){([\\s\\S]*?)}\\s*?})|(([\\s\\S]*?){([\\s\\S]*?)})',
+	EMPTY = '',
+	CALC_RULE = '^(\\s*?[\\s\\S]*):(\\s*?[\\s\\S]*?((\\-(webkit|moz)\\-)?calc\\(([\\s\\S]+)\\))[\\s\\S]*)?$',
+	CSSRULES = '((\\s*?@media[\\s\\S]*?){([\\s\\S]*?)}\\s*?})|(([\\s\\S]*?){([\\s\\S]*?)})',
 
-  KEYFRAMES = new RegExp('((@(-webkit-)?keyframes [\\s\\S]*?){([\\s\\S]*?}\\s*?)})', 'gi'),
-  FONTFACE = new RegExp('((@font-face\\s*?){([\\s\\S]*?)})', 'gi'),
-  COMMENTS = new RegExp('(\\/\\*[\\s\\S]*?\\*\\/)', 'gi'),
-  IMPORTS = new RegExp('@import .*?;', 'gi'),
-  CHARSET = new RegExp('@charset .*?;', 'gi'),
+	KEYFRAMES = new RegExp('((@(-webkit-)?keyframes [\\s\\S]*?){([\\s\\S]*?}\\s*?)})', 'gi'),
+	FONTFACE = new RegExp('((@font-face\\s*?){([\\s\\S]*?)})', 'gi'),
+	COMMENTS = new RegExp('(\\/\\*[\\s\\S]*?\\*\\/)', 'gi'),
+	IMPORTS = new RegExp('@import .*?;', 'gi'),
+	CHARSET = new RegExp('@charset .*?;', 'gi'),
 
-  PERCENT = /[\d\.]+%/,
-  PT = /\d+pt/,
-  PIXEL = /(\d+)px/g,
-  REMEM = /[\d\.]+r?em/,
-  REM = /[\d\.]+rem/,
-  EM = /[\d\.]+em/,
-  MATH_EXP = /[\+\-\/\*]?[\d\.]+(px|%|em|rem)?/g,
-  PLACEHOLDER = '$1',
-  ONLYNUMBERS = /[\s\-0-9]/g,
+	PERCENT = /[\d\.]+%/,
+	PT = /\d+pt/,
+	PIXEL = /(\d+)px/g,
+	REMEM = /[\d\.]+r?em/,
+	REM = /[\d\.]+rem/,
+	EM = /[\d\.]+em/,
+	MATH_EXP = /[\+\-\/\*]?[\d\.]+(px|%|em|rem)?/g,
+	PLACEHOLDER = '$1',
+	ONLYNUMBERS = /[\s\-0-9]/g,
 
-  FONTSIZE = 'font-size',
-  ADDMEDIA = '@media',
+	FONTSIZE = 'font-size',
+	ADDMEDIA = '@media',
 
-  onTextResize = [],
-  onWindowResize = [],
-  cssTexts = [],
-  docLoaded = false
-  ;
+	onTextResize = [],
+	onWindowResize = [],
+	cssTexts = [],
+	docLoaded = false
+	;
 
-  var utilities = {
+	var utilities = {
 
-    camelize: function ( str ) {
+		camelize: function ( str ) {
 
-      return str.replace(/\-(\w)/g, function ( str, letter ) {
+			return str.replace(/\-(\w)/g, function ( str, letter ) {
 
-        return letter.toUpperCase();
-      });
-    },
+				return letter.toUpperCase();
+			});
+		},
 
-    trim: function ( str ) {
+		trim: function ( str ) {
 
-      var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
+			var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
 
-      return !String.prototype.trim ? str.replace(rtrim, '') : str.trim();
-    },
+			return !String.prototype.trim ? str.replace(rtrim, '') : str.trim();
+		},
 
-    indexOf: function ( arr, el, from ) {
+		indexOf: function ( arr, el, from ) {
 
-      var len = arr.length >>> 0;
+			var len = arr.length >>> 0;
 
-      from = Number(from) || 0;
-      from = (from < 0) ? Math.ceil(from) : Math.floor(from);
+			from = Number(from) || 0;
+			from = (from < 0) ? Math.ceil(from) : Math.floor(from);
 
-      if (from < 0) {
-        from += len;
-      }
+			if (from < 0) {
+				from += len;
+			}
 
-      for (; from < len; from++) {
-        if (from in arr && arr[from] === el)
-          return from;
-      }
+			for (; from < len; from++) {
+				if (from in arr && arr[from] === el)
+					return from;
+			}
 
-      return -1;
-    },
+			return -1;
+		},
 
-    // http://www.quirksmode.org/dom/getstyles.html
-    getStyle: function ( el, prop ) {
+		// http://www.quirksmode.org/dom/getstyles.html
+		getStyle: function ( el, prop ) {
 
-      if (el.currentStyle) {
+			if (el.currentStyle) {
 
-        return el.currentStyle[utilities.camelize(prop)];
-      } else if (doc.defaultView && doc.defaultView.getComputedStyle) {
+				return el.currentStyle[utilities.camelize(prop)];
+			} else if (doc.defaultView && doc.defaultView.getComputedStyle) {
 
-        return doc.defaultView.getComputedStyle(el,null).getPropertyValue(prop);
+				return doc.defaultView.getComputedStyle(el,null).getPropertyValue(prop);
 
-      } else {
+			} else {
 
-        return el.style[utilities.camelize(prop)];
-      }
-    },
+				return el.style[utilities.camelize(prop)];
+			}
+		},
 
-    // http://stackoverflow.com/questions/1955048/get-computed-font-size-for-dom-element-in-js
-    getFontsize: function (obj) {
-      var size;
-      var test = doc.createElement('span');
+		// http://stackoverflow.com/questions/1955048/get-computed-font-size-for-dom-element-in-js
+		getFontsize: function (obj) {
+			var size;
+			var test = doc.createElement('span');
 
-      test.innerHTML = '&nbsp;';
-      test.style.position = 'absolute';
-      test.style.lineHeight = '1em';
-      test.style.fontSize = '1em';
+			test.innerHTML = '&nbsp;';
+			test.style.position = 'absolute';
+			test.style.lineHeight = '1em';
+			test.style.fontSize = '1em';
 
-      obj.appendChild(test);
-      size = test.offsetHeight;
-      obj.removeChild(test);
+			obj.appendChild(test);
+			size = test.offsetHeight;
+			obj.removeChild(test);
 
-      return size;
-    },
+			return size;
+		},
 
-    addEvent: function ( el, type, fn ){
+		addEvent: function ( el, type, fn ){
 
-      if (doc.addEventListener){
+			if (doc.addEventListener){
 
-        el.addEventListener(type, fn, false);
-      } else {
+				el.addEventListener(type, fn, false);
+			} else {
 
-        el.attachEvent('on' + type, fn);
-      }
-    },
+				el.attachEvent('on' + type, fn);
+			}
+		},
 
-    // http://alistapart.com/article/fontresizing
-    // http://www.truerwords.net/articles/web-tech/custom_events.html
-    // https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
+		// http://alistapart.com/article/fontresizing
+		// http://www.truerwords.net/articles/web-tech/custom_events.html
+		// https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
 
-    textResize: function(cb) {
+		textResize: function(cb) {
 
-      var el, currentSize;
+			var el, currentSize;
 
-      var createControlElement = function () {
+			var createControlElement = function () {
 
-        el = doc.createElement('span');
-        el.id = 'text-resize-control';
-        el.innerHTML = '&nbsp;';
-        el.style.position = 'absolute';
-        el.style.left = '-9999px';
-        el.style.lineHeight = '1em';
-        el.style.fontSize = '1em';
+				el = doc.createElement('span');
+				el.id = 'text-resize-control';
+				el.innerHTML = '&nbsp;';
+				el.style.position = 'absolute';
+				el.style.left = '-9999px';
+				el.style.lineHeight = '1em';
+				el.style.fontSize = '1em';
 
-        doc.body.insertBefore(el, doc.body.firstChild);
-        currentSize = el.offsetHeight;
-      },
+				doc.body.insertBefore(el, doc.body.firstChild);
+				currentSize = el.offsetHeight;
+			},
 
-      detectChange = function () {
+			detectChange = function () {
 
-        var now = el.offsetHeight;
+				var now = el.offsetHeight;
 
-        if ( currentSize === now ) {
+				if ( currentSize === now ) {
 
-          win.requestAnimationFrame(detectChange);
+					win.requestAnimationFrame(detectChange);
 
-          return false;
-        }
+					return false;
+				}
 
-        currentSize = now;
+				currentSize = now;
 
-        if ( cb && typeof cb === 'function' ) {
+				if ( cb && typeof cb === 'function' ) {
 
-          cb();
-        }
+					cb();
+				}
 
-        win.requestAnimationFrame(detectChange);
-      };
+				win.requestAnimationFrame(detectChange);
+			};
 
-      createControlElement();
-      win.requestAnimationFrame(detectChange);
-    }
-  };
+			createControlElement();
+			win.requestAnimationFrame(detectChange);
+		}
+	};
 
-  var calcTest = function() {
+	var calcTest = function() {
 
-    var el = document.createElement('div');
+		var el = document.createElement('div');
 
-    el.style.cssText = 'width: -moz-calc(10px); width: -webkit-calc(10px); width: calc(10px)';
+		el.style.cssText = 'width: -moz-calc(10px); width: -webkit-calc(10px); width: calc(10px)';
 
-    return !!el.style.length;
-  },
+		return !!el.style.length;
+	},
 
 
-  getStyleSheets = function () {
+	getStyleSheets = function () {
 
-    var stylesheets = [];
-    var index = 0;
-    var len = doc.styleSheets.length;
-    var stylesheet;
+		var stylesheets = [];
+		var index = 0;
+		var len = doc.styleSheets.length;
+		var stylesheet;
 
-    for (; index < len; index++) {
+		for (; index < len; index++) {
 
-      stylesheet = doc.styleSheets[index];
-      cssTexts[index] = '';
+			stylesheet = doc.styleSheets[index];
+			cssTexts[index] = '';
 
-      if (stylesheet.href && stylesheet.href !== EMPTY) {
+			if (stylesheet.href && stylesheet.href !== EMPTY) {
 
-        stylesheets.push(stylesheet.href);
-      }
+				stylesheets.push(stylesheet.href);
+			}
 
-      if ( stylesheet.ownerNode && stylesheet.ownerNode.nodeName.toLowerCase() === 'style' ) {
+			if ( stylesheet.ownerNode && stylesheet.ownerNode.nodeName.toLowerCase() === 'style' ) {
 
-        cssTexts[index] = stylesheet.ownerNode.textContent;
-      }
-    }
+				cssTexts[index] = stylesheet.ownerNode.textContent;
+			}
+		}
 
 
-    if ( stylesheets.length > 0 || cssTexts.length > 0 ) {
+		if ( stylesheets.length > 0 || cssTexts.length > 0 ) {
 
-      loadStylesheets(stylesheets);
-    }
-  },
+			loadStylesheets(stylesheets);
+		}
+	},
 
-  loadStylesheets = function(urls){
-    var xhr;
-    var index = 0;
-    var len = urls.length;
+	loadStylesheets = function(urls){
+		var xhr;
+		var index = 0;
+		var len = urls.length;
 
-    if ( win.XMLHttpRequest ) {
+		if ( win.XMLHttpRequest ) {
 
-      xhr = new XMLHttpRequest();
-    }
-    else {
+			xhr = new XMLHttpRequest();
+		}
+		else {
 
-      try {
+			try {
 
-        xhr = new ActiveXObject('Microsoft.XMLHTTP');
+				xhr = new ActiveXObject('Microsoft.XMLHTTP');
 
-      } catch(e) {
+			} catch(e) {
 
-        xhr = null;
-      }
-    }
+				xhr = null;
+			}
+		}
 
-    if (xhr) {
+		if (xhr) {
 
-      for (; index < len; index++) {
+			for (; index < len; index++) {
 
-        try {
+				try {
 
-          xhr.open('GET', urls[index], false);
-          xhr.send();
+					xhr.open('GET', urls[index], false);
+					xhr.send();
 
-          if ( xhr.status === 200 ) {
-            cssTexts[index] =  xhr.responseText;
-          }
+					if ( xhr.status === 200 ) {
+						cssTexts[index] =  xhr.responseText;
+					}
 
-        } catch(e) {
-          console.log('Error making request for file ' + urls[index] + ': ' + e.message);
-        }
+				} catch(e) {
+					console.log('Error making request for file ' + urls[index] + ': ' + e.message);
+				}
 
-      }
-    }
+			}
+		}
 
-    if (cssTexts.length > 0 ) {
+		if (cssTexts.length > 0 ) {
 
-      parseStylesheets(cssTexts);
-    }
-  },
+			parseStylesheets(cssTexts);
+		}
+	},
 
-  parseStylesheets = function(texts) {
-    var index = 0;
-    var len = texts.length;
+	parseStylesheets = function(texts) {
+		var index = 0;
+		var len = texts.length;
 
-    for (; index < len; index++) {
+		for (; index < len; index++) {
 
-      if ( texts[index].length ) {
+			if ( texts[index].length ) {
 
-        texts[index] = texts[index].replace(COMMENTS, EMPTY).replace(CHARSET, EMPTY).replace(IMPORTS, EMPTY).replace(KEYFRAMES, EMPTY).replace(FONTFACE, EMPTY);
+				texts[index] = texts[index].replace(COMMENTS, EMPTY).replace(CHARSET, EMPTY).replace(IMPORTS, EMPTY).replace(KEYFRAMES, EMPTY).replace(FONTFACE, EMPTY);
 
-        dotheCalc( parseCSS(texts[index]) );
-      }
-    }
-  },
+				dotheCalc( parseCSS(texts[index]) );
+			}
+		}
+	},
 
-  removeStyles = function ( elements ) {
-    var index = 0;
-    var len = elements.length;
+	removeStyles = function ( elements ) {
+		var index = 0;
+		var len = elements.length;
 
-    for (; index < len; index++) {
+		for (; index < len; index++) {
 
-      if ( !JSON.parse(elements[index].getAttribute('data-calced')) ) {
+			if ( !JSON.parse(elements[index].getAttribute('data-calced')) ) {
 
-        elements[index].removeAttribute('style');
-      }
-    }
-  },
+				elements[index].removeAttribute('style');
+			}
+		}
+	},
 
-  parseCSS = function( css, media ) {
+	parseCSS = function( css, media ) {
 
-    var index, len, regex, result, selector, rules, calc, elements, obj, mediaQueryStyleSheet, refSheet;
-    var arr = [];
+		var index, len, regex, result, selector, rules, calc, elements, obj, mediaQueryStyleSheet, refSheet;
+		var arr = [];
 
-    media = media || '';
+		media = media || '';
 
-    regex = new RegExp(CSSRULES, 'gi');
+		regex = new RegExp(CSSRULES, 'gi');
 
-    while ( true ) {
+		while ( true ) {
 
-      result = regex.exec(css);
+			result = regex.exec(css);
 
-      if ( result === null ) {
-        break;
-      }
+			if ( result === null ) {
+				break;
+			}
 
-      selector = utilities.trim( ( result[2] || result[5] ).split('\r\n').join('\n') );
+			selector = utilities.trim( ( result[2] || result[5] ).split('\r\n').join('\n') );
 
-      if ( selector.indexOf( ADDMEDIA ) !== -1 ) {
+			if ( selector.indexOf( ADDMEDIA ) !== -1 ) {
 
-        rules = result[3] + '\n}';
+				rules = result[3] + '\n}';
 
-        arr = arr.concat(parseCSS(rules, selector.replace( ADDMEDIA, '')));
-      }
-      else {
+				arr = arr.concat(parseCSS(rules, selector.replace( ADDMEDIA, '')));
+			}
+			else {
 
-        rules = result[6].split('\r\n').join('\n').split(';');
+				rules = result[6].split('\r\n').join('\n').split(';');
 
-        index = 0;
-        len = rules.length;
+				index = 0;
+				len = rules.length;
 
-        for (; index < len; index++) {
+				for (; index < len; index++) {
 
-          calc = new RegExp(CALC_RULE, 'gi').exec(rules[index]);
+					calc = new RegExp(CALC_RULE, 'gi').exec(rules[index]);
 
-          try {
-            elements = doc.querySelectorAll(selector);
-          }
-          catch(e) {
-            console.log('Error trying to select "' + selector + '": ' + e.message);
-            break;
-          }
+					try {
+						elements = doc.querySelectorAll(selector);
+					}
+					catch(e) {
+						console.log('Error trying to select "' + selector + '": ' + e.message);
+						break;
+					}
 
-          if ( calc !== null && elements.length ) {
+					if ( calc !== null && elements.length ) {
 
-            obj = {
-              elements: elements,
-              media: media,
-              values: utilities.trim( calc[2] ),
-              formula: calc[6],
-              prop: utilities.trim( calc[1] ),
-              placholder: utilities.trim( calc[3] )
-            };
+						obj = {
+							elements: elements,
+							media: media,
+							values: utilities.trim( calc[2] ),
+							formula: calc[6],
+							prop: utilities.trim( calc[1] ),
+							placholder: utilities.trim( calc[3] )
+						};
 
-            if ( obj.formula.match(PERCENT) ) {
-              obj.onresize = true;
-            }
+						if ( obj.formula.match(PERCENT) ) {
+							obj.onresize = true;
+						}
 
-            if ( obj.formula.match(REMEM) ) {
-              obj.ontextresize = true;
-            }
+						if ( obj.formula.match(REMEM) ) {
+							obj.ontextresize = true;
+						}
 
-            arr.push(obj);
-          }
-        }
+						arr.push(obj);
+					}
+				}
 
-      }
-    }
+			}
+		}
 
-    return arr;
-  },
+		return arr;
+	},
 
-  dotheCalc = function( calcRules ){
-    var index = 0;
-    var len = calcRules.length;
-    var obj;
+	dotheCalc = function( calcRules ){
+		var index = 0;
+		var len = calcRules.length;
+		var obj;
 
-    var calc = function( obj ) {
-      var i = 0;
-      var len = obj.elements.length;
-      var refValue, modifier, matches, l, j, result, formula;
+		var calc = function( obj ) {
+			var i = 0;
+			var len = obj.elements.length;
+			var refValue, modifier, matches, l, j, result, formula;
 
-      for (; i < len; i++) {
+			for (; i < len; i++) {
 
-        formula = obj.formula.replace(PIXEL, PLACEHOLDER);
-        matches = formula.match(MATH_EXP);
-        l = matches.length;
-        j = 0;
+				formula = obj.formula.replace(PIXEL, PLACEHOLDER);
+				matches = formula.match(MATH_EXP);
+				l = matches.length;
+				j = 0;
 
-        for (; j < l; j++) {
+				for (; j < l; j++) {
 
-          modifier = null;
+					modifier = null;
 
-          if ( matches[j].match(PERCENT) ) {
+					if ( matches[j].match(PERCENT) ) {
 
-            refValue = obj.elements[i].parentNode.clientWidth;
+						refValue = obj.elements[i].parentNode.clientWidth;
 
-            modifier = parseFloat(matches[j], 10) / 100;
-          }
+						modifier = parseFloat(matches[j], 10) / 100;
+					}
 
-          if ( matches[j].match(EM) ) {
+					if ( matches[j].match(EM) ) {
 
-            refValue = obj.elements[i].currentStyle ? utilities.getFontsize(obj.elements[i]) : parseInt( utilities.getStyle( obj.elements[i], FONTSIZE).replace(/px/, EMPTY ), 10);
+						refValue = obj.elements[i].currentStyle ? utilities.getFontsize(obj.elements[i]) : parseInt( utilities.getStyle( obj.elements[i], FONTSIZE).replace(/px/, EMPTY ), 10);
 
-            if ( refValue.match && refValue.match(PT) ) {
+						if ( refValue.match && refValue.match(PT) ) {
 
-              refValue = Math.round( parseInt(refValue.replace(/pt/, ''), 10) * 1.333333333 );
-            }
+							refValue = Math.round( parseInt(refValue.replace(/pt/, ''), 10) * 1.333333333 );
+						}
 
-            modifier = parseFloat(matches[j], 10);
-          }
+						modifier = parseFloat(matches[j], 10);
+					}
 
-          if ( matches[j].match(REM) ) {
+					if ( matches[j].match(REM) ) {
 
-            if ( utilities.getStyle( doc.body , FONTSIZE ).match(PERCENT) ) {
+						if ( utilities.getStyle( doc.body , FONTSIZE ).match(PERCENT) ) {
 
-              refValue = 16 * parseInt( utilities.getStyle( doc.body , FONTSIZE).replace(/%/, EMPTY), 10) / 100;
-            }
-            else if ( utilities.getStyle( doc.body , FONTSIZE ).match(PT) ) {
+							refValue = 16 * parseInt( utilities.getStyle( doc.body , FONTSIZE).replace(/%/, EMPTY), 10) / 100;
+						}
+						else if ( utilities.getStyle( doc.body , FONTSIZE ).match(PT) ) {
 
-              refValue = Math.round( parseInt(utilities.getStyle( doc.body , FONTSIZE).replace(/pt/, ''), 10) * 1.333333333 );
-            }
-            else {
+							refValue = Math.round( parseInt(utilities.getStyle( doc.body , FONTSIZE).replace(/pt/, ''), 10) * 1.333333333 );
+						}
+						else {
 
-              refValue = parseInt( utilities.getStyle( doc.body , FONTSIZE).replace(/px/, EMPTY ), 10);
-            }
+							refValue = parseInt( utilities.getStyle( doc.body , FONTSIZE).replace(/px/, EMPTY ), 10);
+						}
 
-            modifier = parseFloat(matches[j], 10);
-          }
+						modifier = parseFloat(matches[j], 10);
+					}
 
-          if ( modifier ) {
-            formula = formula.replace(matches[j], refValue * modifier);
-          }
+					if ( modifier ) {
+						formula = formula.replace(matches[j], refValue * modifier);
+					}
 
-        }
+				}
 
-        try {
+				try {
 
-          if ( formula.match(ONLYNUMBERS) ) {
+					if ( formula.match(ONLYNUMBERS) ) {
 
-            result = eval( formula );
+						result = eval( formula );
 
-            obj.elements[i].style[ utilities.trim( utilities.camelize(obj.prop) ) ] = obj.values.replace(obj.placholder,  result + 'px');
-            obj.elements[i].setAttribute('data-calced', true);
-          }
-        }
-        catch(e) {}
+						obj.elements[i].style[ utilities.trim( utilities.camelize(obj.prop) ) ] = obj.values.replace(obj.placholder,  result + 'px');
+						obj.elements[i].setAttribute('data-calced', true);
+					}
+				}
+				catch(e) {}
 
-      }
-    };
+			}
+		};
 
-    for (; index < len; index++) {
+		for (; index < len; index++) {
 
-      obj = calcRules[index];
+			obj = calcRules[index];
 
-      if ( obj.onresize && utilities.indexOf( onWindowResize, obj ) === -1 ) {
+			if ( obj.onresize && utilities.indexOf( onWindowResize, obj ) === -1 ) {
 
-        onWindowResize.push(obj);
-      }
+				onWindowResize.push(obj);
+			}
 
-      if ( obj.ontextresize && utilities.indexOf( onTextResize, obj ) === -1 ) {
+			if ( obj.ontextresize && utilities.indexOf( onTextResize, obj ) === -1 ) {
 
-        onTextResize.push(obj);
-      }
+				onTextResize.push(obj);
+			}
 
-      if ( obj.media !== EMPTY ) {
+			if ( obj.media !== EMPTY ) {
 
-        if ( win.matchMedia && win.matchMedia(obj.media).matches ) {
+				if ( win.matchMedia && win.matchMedia(obj.media).matches ) {
 
-          calc(obj);
-        }
-        else {
+					calc(obj);
+				}
+				else {
 
-          removeStyles( obj.elements );
-        }
-      }
-      else {
+					removeStyles( obj.elements );
+				}
+			}
+			else {
 
-        calc(obj);
-      }
-    }
+				calc(obj);
+			}
+		}
 
-  };
+	};
 
-  // Public interface
-  win.dotheCalc = function() {
+	// Public interface
+	win.dotheCalc = function() {
 
-    if (cssTexts.length > 0 && docLoaded) {
+		if (cssTexts.length > 0 && docLoaded) {
 
-      parseStylesheets(cssTexts);
-    }
-  };
+			parseStylesheets(cssTexts);
+		}
+	};
 
 
-  contentLoaded(win, function(){
+	contentLoaded(win, function(){
 
-    if ( calcTest() ) {
-      return;
-    }
+		if ( calcTest() ) {
+			return;
+		}
 
-    docLoaded = true;
+		docLoaded = true;
 
-    getStyleSheets();
+		getStyleSheets();
 
-    if ( onTextResize.length > 0 ) {
+		if ( onTextResize.length > 0 ) {
 
-      utilities.textResize(function(){
+			utilities.textResize(function(){
 
-        dotheCalc( onTextResize );
-      });
-    }
+				dotheCalc( onTextResize );
+			});
+		}
 
-    if ( onWindowResize.length > 0 ) {
+		if ( onWindowResize.length > 0 ) {
 
-      utilities.addEvent(win, 'resize', function (){
+			utilities.addEvent(win, 'resize', function (){
 
-        dotheCalc( onWindowResize );
-      });
-    }
-  });
+				dotheCalc( onWindowResize );
+			});
+		}
+	});
 
-  // Libs and Helpers
+	// Libs and Helpers
 
-  // import libs/contentloaded/src/contentloaded.js
-  // import libs/requestAnimationFrame/app/requestAnimationFrame.js
+	// import libs/contentloaded/src/contentloaded.js
+	// import libs/requestAnimationFrame/app/requestAnimationFrame.js
 
 
 })(window, document);
 
 /*
-REM-unit-polyfill | https://github.com/chuckcarpenter/REM-unit-polyfill
+* REM-unit-polyfill | https://github.com/chuckcarpenter/REM-unit-polyfill
 */
 (function (window, undefined) {
     "use strict";
@@ -1585,202 +1225,563 @@ REM-unit-polyfill | https://github.com/chuckcarpenter/REM-unit-polyfill
 })(window);
 
 /*
-transformie | https://github.com/pbakaus/transformie
+* transformie | https://github.com/pbakaus/transformie
 */
 var Transformie = {
-  
-  defaults: {
-    inlineCSS: '*',
-    stylesheets: true,
-    track: '*',
-    centerOrigin: 'margin' //false, position
-  },
-  
-  toRadian: function(value) {
-    if(value.indexOf("deg") != -1) {
-      return parseFloat(value,10) * (Math.PI * 2 / 360);
-    } else if (value.indexOf("grad") != -1) {
-      return parseFloat(value,10) * (Math.PI/200);
-    } else {
-      return parseFloat(value,10);
-    }
-  },
-  
-  getTransformValue: function(style) {
-    return style['-webkit-transform']
-    ||  style['webkit-transform'] 
-    ||  style['transform']
-    ||  style.webkitTransform
-    ||  style['-moz-transform']
-    ||  style['moz-transform'] 
-    ||  style.MozTransform
-    ||  style.mozTransform;
-  },
-  
-  track: function(query) {
-    jQuery(query).unbind('propertychange').bind('propertychange', function(e) {
-      if(e.originalEvent.propertyName == 'style.webkitTransform' || e.originalEvent.propertyName == 'style.MozTransform' || e.originalEvent.propertyName == 'style.transform')
-        Transformie.applyMatrixToElement(Transformie.computeMatrix(Transformie.getTransformValue(this.style)), this);
-    });
-  },
-  
-  apply: function(selector) {
-    jQuery(selector).each(function() {
-      var foundRule = Transformie.getTransformValue(this.style);
-      foundRule && Transformie.applyMatrixToElement(Transformie.computeMatrix(foundRule), this);
-    });
-  },
-  
-  parseStylesheets: function() {  
-    //Loop through all stylesheets and apply initial rules
-    for (var i=0; i < document.styleSheets.length; i++) {
-      if(document.styleSheets[i].readOnly) continue; // if the stylesheet gives us security issues and is readOnly, exit here
-      for (var j=0; j < document.styleSheets[i].rules.length; j++) {
-        var foundRule = Transformie.getTransformValue(document.styleSheets[i].rules[j].style);
-        foundRule && Transformie.applyMatrixToSelector(Transformie.computeMatrix(foundRule), document.styleSheets[i].rules[j].selectorText);
-      };
-    };  
-    
-  },
-  
-  applyMatrixToSelector: function(matrix, selector) {
+	
+	defaults: {
+		inlineCSS: '*',
+		stylesheets: true,
+		track: '*',
+		centerOrigin: 'margin' //false, position
+	},
+	
+	toRadian: function(value) {
+		if(value.indexOf("deg") != -1) {
+			return parseFloat(value,10) * (Math.PI * 2 / 360);
+		} else if (value.indexOf("grad") != -1) {
+			return parseFloat(value,10) * (Math.PI/200);
+		} else {
+			return parseFloat(value,10);
+		}
+	},
+	
+	getTransformValue: function(style) {
+		return style['-webkit-transform']
+		|| 	style['webkit-transform'] 
+		|| 	style['transform']
+		|| 	style.webkitTransform
+		||	style['-moz-transform']
+		|| 	style['moz-transform'] 
+		|| 	style.MozTransform
+		|| 	style.mozTransform;
+	},
+	
+	track: function(query) {
+		jQuery(query).unbind('propertychange').bind('propertychange', function(e) {
+			if(e.originalEvent.propertyName == 'style.webkitTransform' || e.originalEvent.propertyName == 'style.MozTransform' || e.originalEvent.propertyName == 'style.transform')
+				Transformie.applyMatrixToElement(Transformie.computeMatrix(Transformie.getTransformValue(this.style)), this);
+		});
+	},
+	
+	apply: function(selector) {
+		jQuery(selector).each(function() {
+			var foundRule = Transformie.getTransformValue(this.style);
+			foundRule && Transformie.applyMatrixToElement(Transformie.computeMatrix(foundRule), this);
+		});
+	},
+	
+	parseStylesheets: function() {	
+		//Loop through all stylesheets and apply initial rules
+		for (var i=0; i < document.styleSheets.length; i++) {
+			if(document.styleSheets[i].readOnly) continue; // if the stylesheet gives us security issues and is readOnly, exit here
+			for (var j=0; j < document.styleSheets[i].rules.length; j++) {
+				var foundRule = Transformie.getTransformValue(document.styleSheets[i].rules[j].style);
+				foundRule && Transformie.applyMatrixToSelector(Transformie.computeMatrix(foundRule), document.styleSheets[i].rules[j].selectorText);
+			};
+		};	
+		
+	},
+	
+	applyMatrixToSelector: function(matrix, selector) {
 
-    //TODO: Figure what to do with :hover, can't just apply it to found elements
-    if(selector.indexOf && selector.indexOf(':hover') != -1)
-      return;
-    
-    jQuery(selector).each(function() {
-      Transformie.applyMatrixToElement(matrix, this);
-    });
-    
-  },
-  
-  applyMatrixToElement: function(matrix, element) {
-    
-    if(!element.filters["DXImageTransform.Microsoft.Matrix"]) {
-      element.style.filter = (element.style.filter ? '' : ' ' ) + "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand')";
-      Transformie.track(element); // if an element is being tracked once, it is likely we do something with it later on, so track changes on this one by default
-    }
+		//TODO: Figure what to do with :hover, can't just apply it to found elements
+		if(selector.indexOf && selector.indexOf(':hover') != -1)
+			return;
+		
+		jQuery(selector).each(function() {
+			Transformie.applyMatrixToElement(matrix, this);
+		});
+		
+	},
+	
+	applyMatrixToElement: function(matrix, element) {
+		
+		if(!element.filters["DXImageTransform.Microsoft.Matrix"]) {
+			element.style.filter = (element.style.filter ? '' : ' ' ) + "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand')";
+			Transformie.track(element); // if an element is being tracked once, it is likely we do something with it later on, so track changes on this one by default
+		}
 
-    element.filters["DXImageTransform.Microsoft.Matrix"].M11 = matrix.elements[0][0];
-    element.filters["DXImageTransform.Microsoft.Matrix"].M12 = matrix.elements[0][1];
-    element.filters["DXImageTransform.Microsoft.Matrix"].M21 = matrix.elements[1][0];
-    element.filters["DXImageTransform.Microsoft.Matrix"].M22 = matrix.elements[1][1];
-    
-    // Since we unfortunately do not have the possibility to use Dx,Dy with sizing method 'auto expand', we need to do
-    // something hacky to work around supporting the transform-origin property, either modifying top/left or margins.
-    // IE Team: Would be really helpful if you could fix this to work on auto expand, or introduce a sizing method that works like the default, but doesn't clip..
-    if(Transformie.defaults.centerOrigin) { //TODO: Add computed borders here to clientWidth/height or find a better prop to look for
-      element.style[Transformie.defaults.centerOrigin == 'margin' ? 'marginLeft' : 'left'] = -(element.offsetWidth/2) + (element.clientWidth/2) + "px";
-      element.style[Transformie.defaults.centerOrigin == 'margin' ? 'marginTop' : 'top'] = -(element.offsetHeight/2) + (element.clientHeight/2) + "px";
-    }
-    
-  },
-  
-  computeMatrix: function(ruleValue) {
-  
-    //Split the webkit functions and loop through them
-    var functions = ruleValue.match(/[A-z]+\([^\)]+/g) || [];
-    var matrices = [];
-    
-    for (var k=0; k < functions.length; k++) {
-    
-      //Prepare the function name and its value
-      var func = functions[k].split('(')[0],
-        value = functions[k].split('(')[1];
-    
-      //Now we rotate through the functions and add it to our matrix
-      switch(func) {
-        case 'matrix': //Attention: Matrix in IE doesn't support e,f = tx,ty = translation
-          var values = value.split(',');
-          matrices.push($M([
-            [values[0], values[2],  0],
-            [values[1], values[3],  0],
-            [0,         0,  1]
-          ]));
-          break;
-        case 'rotate':
-          var a = Transformie.toRadian(value);
-          matrices.push($M([
-            [Math.cos(a), -Math.sin(a), 0],
-            [Math.sin(a), Math.cos(a),  0],
-            [0,       0,        1]
-          ]));
-          break;
-        case 'scale':
-          matrices.push($M([
-            [value, 0,    0],
-            [0,   value,  0],
-            [0,   0,    1]
-          ]));
-          break;
-        case 'scaleX':
-          matrices.push($M([
-            [value, 0,    0],
-            [0,   1,    0],
-            [0,   0,    1]
-          ]));
-          break;
-        case 'scaleY':
-          matrices.push($M([
-            [1,   0,    0],
-            [0,   value,  0],
-            [0,   0,    1]
-          ]));
-          break;
-        case 'skew':
-          var a = Transformie.toRadian(value);
-          matrices.push($M([
-            [1,       0,  0],
-            [Math.tan(a), 1,  0],
-            [0,       0,  1]
-          ]));
-        case 'skewX':
-          var a = Transformie.toRadian(value);
-          matrices.push($M([
-            [1,   Math.tan(a),0],
-            [0,   1,      0],
-            [0,   0,      1]
-          ]));
-          break;
-        case 'skewY':
-          var a = Transformie.toRadian(value);
-          matrices.push($M([
-            [1,       0,  0],
-            [Math.tan(a), 1,  0],
-            [0,       0,  1]
-          ]));
-          break;
-      };
-      
-    };
-    
-    if(!matrices.length)
-      return;
-    
-    //Calculate the resulting matrix
-    var matrix = matrices[0];
-    for (var k=0; k < matrices.length; k++) {
-      if(matrices[k+1]) matrix = matrix.x(matrices[k+1]);
-    };
+		element.filters["DXImageTransform.Microsoft.Matrix"].M11 = matrix.elements[0][0];
+		element.filters["DXImageTransform.Microsoft.Matrix"].M12 = matrix.elements[0][1];
+		element.filters["DXImageTransform.Microsoft.Matrix"].M21 = matrix.elements[1][0];
+		element.filters["DXImageTransform.Microsoft.Matrix"].M22 = matrix.elements[1][1];
+		
+		// Since we unfortunately do not have the possibility to use Dx,Dy with sizing method 'auto expand', we need to do
+		// something hacky to work around supporting the transform-origin property, either modifying top/left or margins.
+		// IE Team: Would be really helpful if you could fix this to work on auto expand, or introduce a sizing method that works like the default, but doesn't clip..
+		if(Transformie.defaults.centerOrigin) { //TODO: Add computed borders here to clientWidth/height or find a better prop to look for
+			element.style[Transformie.defaults.centerOrigin == 'margin' ? 'marginLeft' : 'left'] = -(element.offsetWidth/2) + (element.clientWidth/2) + "px";
+			element.style[Transformie.defaults.centerOrigin == 'margin' ? 'marginTop' : 'top'] = -(element.offsetHeight/2) + (element.clientHeight/2) + "px";
+		}
+		
+	},
+	
+	computeMatrix: function(ruleValue) {
+	
+		//Split the webkit functions and loop through them
+		var functions = ruleValue.match(/[A-z]+\([^\)]+/g) || [];
+		var matrices = [];
+		
+		for (var k=0; k < functions.length; k++) {
+		
+			//Prepare the function name and its value
+			var func = functions[k].split('(')[0],
+				value = functions[k].split('(')[1];
+		
+			//Now we rotate through the functions and add it to our matrix
+			switch(func) {
+				case 'matrix': //Attention: Matrix in IE doesn't support e,f = tx,ty = translation
+					var values = value.split(',');
+					matrices.push($M([
+						[values[0],	values[2],	0],
+						[values[1],	values[3],	0],
+						[0,					0,	1]
+					]));
+					break;
+				case 'rotate':
+					var a = Transformie.toRadian(value);
+					matrices.push($M([
+						[Math.cos(a),	-Math.sin(a),	0],
+						[Math.sin(a),	Math.cos(a),	0],
+						[0,				0,				1]
+					]));
+					break;
+				case 'scale':
+					matrices.push($M([
+						[value,	0,		0],
+						[0,		value,	0],
+						[0,		0,		1]
+					]));
+					break;
+				case 'scaleX':
+					matrices.push($M([
+						[value,	0,		0],
+						[0,		1,		0],
+						[0,		0,		1]
+					]));
+					break;
+				case 'scaleY':
+					matrices.push($M([
+						[1,		0,		0],
+						[0,		value,	0],
+						[0,		0,		1]
+					]));
+					break;
+				case 'skew':
+					var a = Transformie.toRadian(value);
+					matrices.push($M([
+						[1,				0,	0],
+						[Math.tan(a),	1,	0],
+						[0,				0,	1]
+					]));
+				case 'skewX':
+					var a = Transformie.toRadian(value);
+					matrices.push($M([
+						[1,		Math.tan(a),0],
+						[0,		1,			0],
+						[0,		0,			1]
+					]));
+					break;
+				case 'skewY':
+					var a = Transformie.toRadian(value);
+					matrices.push($M([
+						[1,				0,	0],
+						[Math.tan(a),	1,	0],
+						[0,				0,	1]
+					]));
+					break;
+			};
+			
+		};
+		
+		if(!matrices.length)
+			return;
+		
+		//Calculate the resulting matrix
+		var matrix = matrices[0];
+		for (var k=0; k < matrices.length; k++) {
+			if(matrices[k+1]) matrix = matrix.x(matrices[k+1]);
+		};
 
-    return matrix;
-    
-  } 
+		return matrix;
+		
+	}	
 };
 
 
 jQuery(function() {
 
-  if( navigator.userAgent.indexOf("MSIE ") == -1) return;
+	if( navigator.userAgent.indexOf("MSIE ") == -1) return;
 
-  // Parsing stylesheets, almost always makes sense
-  Transformie.defaults.stylesheets && Transformie.parseStylesheets();
+	// Parsing stylesheets, almost always makes sense
+	Transformie.defaults.stylesheets && Transformie.parseStylesheets();
 
-  // if we want to track inline CSS, we're resolving all inline transforms at page launch
-  Transformie.inlineCSS && Transformie.apply(Transformie.inlineCSS === true ? '*' : Transformie.inlineCSS);
-  
-  // we have a dynamic site and we want to track inline style changes on a list of elements
-  Transformie.defaults.track && Transformie.track(Transformie.defaults.track);
-  
+	// if we want to track inline CSS, we're resolving all inline transforms at page launch
+	Transformie.inlineCSS && Transformie.apply(Transformie.inlineCSS === true ? '*' : Transformie.inlineCSS);
+	
+	// we have a dynamic site and we want to track inline style changes on a list of elements
+	Transformie.defaults.track && Transformie.track(Transformie.defaults.track);
+	
 });
+
+/*
+* vminpoly | https://github.com/saabi/vminpoly
+*/
+
+(function() {
+  var XMLHttpFactories, ajax, applyStyleTest, browserSupportsUnitsNatively, clearStyleTests, createXMLHTTPObject, getViewportSize, initLayoutEngine, testElementStyle, testVHSupport, testVMinSupport, testVWSupport;
+
+  XMLHttpFactories = [
+    function() {
+      return new XMLHttpRequest();
+    }, function() {
+      return new ActiveXObject("Msxml2.XMLHTTP");
+    }, function() {
+      return new ActiveXObject("Msxml3.XMLHTTP");
+    }, function() {
+      return new ActiveXObject("Microsoft.XMLHTTP");
+    }
+  ];
+
+  createXMLHTTPObject = function() {
+    var e, i, xmlhttp;
+    xmlhttp = false;
+    i = 0;
+    while (i < XMLHttpFactories.length) {
+      try {
+        xmlhttp = XMLHttpFactories[i++]();
+      } catch (_error) {
+        e = _error;
+        continue;
+      }
+      break;
+    }
+    return xmlhttp;
+  };
+
+  ajax = function(url, onload) {
+    var e, xmlhttp;
+    xmlhttp = createXMLHTTPObject();
+    xmlhttp.onreadystatechange = function() {
+      if (xmlhttp.readyState !== 4) {
+        return;
+      }
+      if (!(xmlhttp.status === 200 || url.match(/^file:\/\/\//))) {
+        throw "Error!";
+      }
+      console.log("INFO: processing " + url);
+      onload(xmlhttp.responseText);
+    };
+    try {
+      xmlhttp.open("GET", url, true);
+      xmlhttp.send();
+    } catch (_error) {
+      e = _error;
+      console.log("ERROR: " + e.message + " (" + e.type + ") when accessing " + url);
+    }
+  };
+
+  getViewportSize = function() {
+    var x, y;
+    x = 0;
+    y = 0;
+    if (window.innerHeight) {
+      x = window.innerWidth;
+      y = window.innerHeight;
+    } else if (document.documentElement && document.documentElement.clientHeight) {
+      x = document.documentElement.clientWidth;
+      y = document.documentElement.clientHeight;
+    } else if (document.body) {
+      x = document.body.clientWidth;
+      y = document.body.clientHeight;
+    }
+    return {
+      width: x,
+      height: y
+    };
+  };
+
+  browserSupportsUnitsNatively = function() {
+    var body, head, style_block, test_element, test_results;
+    test_element = document.createElement('div');
+    test_element.id = "vminpolyTests";
+    body = document.getElementsByTagName('body')[0];
+    body.appendChild(test_element);
+    style_block = document.createElement('style');
+    head = document.getElementsByTagName('head')[0];
+    head.appendChild(style_block);
+    test_results = testVWSupport(test_element, style_block) && testVWSupport(test_element, style_block) && testVMinSupport(test_element, style_block);
+    body.removeChild(test_element);
+    head.removeChild(style_block);
+    return test_results;
+  };
+
+  testElementStyle = function(element) {
+    if (window.getComputedStyle) {
+      return getComputedStyle(element, null);
+    } else {
+      return element.currentStyle;
+    }
+  };
+
+  applyStyleTest = function(style_block, style) {
+    var new_style, test_style;
+    new_style = "#vminpolyTests { " + style + "; }";
+    if (style_block.styleSheet) {
+      return style_block.styleSheet.cssText = new_style;
+    } else {
+      test_style = document.createTextNode(new_style);
+      return style_block.appendChild(test_style);
+    }
+  };
+
+  clearStyleTests = function(style_block) {
+    if (style_block.styleSheet) {
+      return style_block.styleSheet.cssText = '';
+    } else {
+      return style_block.innerHTML = '';
+    }
+  };
+
+  testVHSupport = function(element, style_block) {
+    var comp_style, height;
+    applyStyleTest(style_block, 'height: 50vh');
+    height = parseInt(window.innerHeight / 2, 10);
+    comp_style = parseInt(testElementStyle(element).height, 10);
+    clearStyleTests(style_block);
+    return comp_style === height;
+  };
+
+  testVWSupport = function(element, style_block) {
+    var comp_style, width;
+    applyStyleTest(style_block, 'width: 50vw');
+    width = parseInt(window.innerWidth / 2, 10);
+    comp_style = parseInt(testElementStyle(element).width, 10);
+    clearStyleTests(style_block);
+    return comp_style === width;
+  };
+
+  testVMinSupport = function(element, style_block) {
+    var actual_vmin, comp_width, docElement, one_vh, one_vw;
+    applyStyleTest(style_block, 'width: 50vmin');
+    docElement = document.documentElement;
+    one_vw = docElement.clientWidth / 100;
+    one_vh = docElement.clientHeight / 100;
+    actual_vmin = parseInt(Math.min(one_vw, one_vh) * 50, 10);
+    comp_width = parseInt(testElementStyle(element).width, 10);
+    clearStyleTests(style_block);
+    return actual_vmin === comp_width;
+  };
+
+  initLayoutEngine = function() {
+    var analyzeStyleRule, analyzeStylesheet, head, i, innerSheetCount, links, onresize, outerSheetCount, sheets, styleElement, _i, _len;
+    analyzeStyleRule = function(rule) {
+      var declaration, declarations, hasDimension, token, _i, _j, _len, _len1, _ref, _ref1;
+      declarations = [];
+      _ref = rule.value;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        declaration = _ref[_i];
+        hasDimension = false;
+        _ref1 = declaration.value;
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          token = _ref1[_j];
+          if (token.tokenType === 'DIMENSION' && (token.unit === 'vmin' || token.unit === 'vh' || token.unit === 'vw')) {
+            hasDimension = true;
+          }
+        }
+        if (hasDimension) {
+          declarations.push(declaration);
+        }
+      }
+      rule.value = declarations;
+      return declarations;
+    };
+    analyzeStylesheet = function(sheet) {
+      var atRules, decs, rule, rules, _i, _len, _ref;
+      rules = [];
+      _ref = sheet.value;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        rule = _ref[_i];
+        switch (rule.type) {
+          case 'STYLE-RULE':
+            decs = analyzeStyleRule(rule);
+            if (decs.length !== 0) {
+              rules.push(rule);
+            }
+            break;
+          case 'AT-RULE':
+            atRules = analyzeStylesheet(rule);
+            if (atRules.length !== 0) {
+              rules.push(rule);
+            }
+        }
+      }
+      sheet.value = rules;
+      return rules;
+    };
+    onresize = function() {
+      var css, dims, generateRuleCode, generateSheetCode, map, sheet, url, vpAspectRatio, vpDims;
+      vpDims = getViewportSize();
+      dims = {
+        vh: vpDims.height / 100,
+        vw: vpDims.width / 100
+      };
+      dims.vmin = Math.min(dims.vh, dims.vw);
+      vpAspectRatio = vpDims.width / vpDims.height;
+      map = function(a, f) {
+        var a1, e, _i, _len;
+        if (a.map != null) {
+          return a.map(f);
+        } else {
+          a1 = [];
+          for (_i = 0, _len = a.length; _i < _len; _i++) {
+            e = a[_i];
+            a1.push(f(e));
+          }
+          return a1;
+        }
+      };
+      generateRuleCode = function(rule) {
+        var declaration, declarations, ruleCss, token, _i, _j, _len, _len1, _ref, _ref1;
+        declarations = [];
+        ruleCss = (map(rule.selector, function(o) {
+          if (o.toSourceString != null) {
+            return o.toSourceString();
+          } else {
+            return '';
+          }
+        })).join('');
+        ruleCss += "{";
+        _ref = rule.value;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          declaration = _ref[_i];
+          ruleCss += declaration.name;
+          ruleCss += ":";
+          _ref1 = declaration.value;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            token = _ref1[_j];
+            if (token.tokenType === 'DIMENSION' && (token.unit === 'vmin' || token.unit === 'vh' || token.unit === 'vw')) {
+              ruleCss += "" + (Math.floor(token.num * dims[token.unit])) + "px";
+            } else {
+              ruleCss += token.toSourceString();
+            }
+          }
+          ruleCss += ";";
+        }
+        ruleCss += "}\r";
+        return ruleCss;
+      };
+      generateSheetCode = function(sheet) {
+        var mar, nums, prelude, rule, sheetCss, source, t, t1, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
+        sheetCss = '';
+        _ref = sheet.value;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          rule = _ref[_i];
+          switch (rule.type) {
+            case 'STYLE-RULE':
+              sheetCss += generateRuleCode(rule);
+              break;
+            case 'AT-RULE':
+              if (rule.name === 'media') {
+                prelude = '';
+                mar = false;
+                nums = [];
+                _ref1 = rule.prelude;
+                for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                  t = _ref1[_j];
+                  if (t.name === '(') {
+                    prelude += '(';
+                    _ref2 = t.value;
+                    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                      t1 = _ref2[_k];
+                      source = t1.toSourceString != null ? t1.toSourceString() : '';
+                      if (t1.tokenType === 'IDENT' && source === 'max-aspect-ratio') {
+                        mar = true;
+                      }
+                      if (t1.tokenType === 'NUMBER') {
+                        nums.push(parseInt(source));
+                      }
+                      prelude += source;
+                    }
+                    prelude += ')';
+                  } else {
+                    prelude += t.toSourceString();
+                  }
+                }
+                if (vpAspectRatio < nums[0] / nums[1]) {
+                  sheetCss += generateSheetCode(rule);
+                }
+              } else {
+                prelude = '';
+                _ref3 = rule.prelude;
+                for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+                  t = _ref3[_l];
+                  if (t.name === '(') {
+                    prelude += '(';
+                    prelude += (map(t.value, function(o) {
+                      if (o.toSourceString != null) {
+                        return o.toSourceString();
+                      } else {
+                        return '';
+                      }
+                    })).join('');
+                    prelude += ')';
+                  } else {
+                    prelude += t.toSourceString();
+                  }
+                }
+                sheetCss += "@" + rule.name + " " + prelude + " {";
+                sheetCss += generateSheetCode(rule);
+                sheetCss += '}\n';
+              }
+          }
+        }
+        return sheetCss;
+      };
+      css = '';
+      for (url in sheets) {
+        sheet = sheets[url];
+        css += generateSheetCode(sheet);
+      }
+      if (styleElement.styleSheet != null) {
+        return styleElement.styleSheet.cssText = css;
+      } else {
+        return styleElement.innerHTML = css;
+      }
+    };
+    sheets = {};
+    styleElement = document.createElement('style');
+    head = document.getElementsByTagName('head')[0];
+    head.appendChild(styleElement);
+    links = document.getElementsByTagName('link');
+    innerSheetCount = 0;
+    outerSheetCount = 0;
+    for (_i = 0, _len = links.length; _i < _len; _i++) {
+      i = links[_i];
+      if (i.rel !== 'stylesheet') {
+        continue;
+      }
+      innerSheetCount++;
+      ajax(i.href, function(cssText) {
+        var sheet, tokenlist;
+        tokenlist = tokenize(cssText);
+        sheet = parse(tokenlist);
+        analyzeStylesheet(sheet);
+        sheets[i.href] = sheet;
+        outerSheetCount++;
+        if (outerSheetCount === innerSheetCount) {
+          window.onresize();
+        }
+      });
+    }
+    window.onresize = onresize;
+  };
+
+  console.log('About to do the engine unless...', browserSupportsUnitsNatively());
+
+  if (!browserSupportsUnitsNatively()) {
+    initLayoutEngine();
+  }
+
+}).call(this);
