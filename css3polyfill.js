@@ -1,5 +1,5 @@
 /**
- *  CSS3polyfill - v0.1
+ *  CSS3polyfill - v1.0.0
  *  A CSS3 polyfill collection for IE8 
  *  https://github.com/marcofugaro/css3polyfill
 **/

@@ -4,9 +4,9 @@ var rename = require("gulp-rename");
 var insert = require('gulp-insert');
 
 var info = "/**" + "\n" +
-        " *  CSS3polyfill - v0.1 " + "\n" +
-        " *  A CSS3 polyfill collection for IE8  " + "\n" +
-        " *  https://github.com/marcofugaro/css3polyfill " + "\n" +
+        " *  CSS3polyfill - v1.0.0" + "\n" +
+        " *  A CSS3 polyfill collection for IE8" + "\n" +
+        " *  https://github.com/marcofugaro/css3polyfill" + "\n" +
         " **/" + "\n";
 
 gulp.task('scripts', function() { 
