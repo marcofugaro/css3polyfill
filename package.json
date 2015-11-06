@@ -1,0 +1,28 @@
+{
+  "name": "css3polyfill",
+  "version": "1.0.0",
+  "description": "A CSS3 polyfill collection for IE8",
+  "repository": "https://github.com/marcofugaro/css3polyfill",
+  "main": "css3polyfill.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "css3",
+    "ie8",
+    "vh",
+    "vw",
+    "background-size",
+    "calc",
+    "transform",
+    "rem"
+  ],
+  "author": "Marco Fugaro <marco.fugaro@gmail.com> (http://marcofugaro.it/)",
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-insert": "^0.5.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.4.2"
+  }
+}
