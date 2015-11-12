@@ -1,7 +1,7 @@
 CSS3 Polyfill
 =============
 
-2016? Still for some obscure reason supporting IE8 even though [microsoft itself stopped supporting it](https://www.reddit.com/r/web_design/comments/3nz4fc/microsoft_stops_supporting_internet_explorer_8910/)? Want to use those cool CSS3 features introduced in 2011? Don't worry!
+2016? Still for some obscure reason supporting IE8 even though [microsoft itself stopped supporting it](https://www.reddit.com/r/web_design/comments/3nz4fc/microsoft_stops_supporting_internet_explorer_8910/)? Want to use those really cool CSS3 features introduced merely 6 years ago? Don't worry!
 
 CSS3 Polyfill is a collection of polyfills for the main CSS3 features:
 
