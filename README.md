@@ -19,9 +19,11 @@ For a `flexbox` fallback you can check out [flexie](https://github.com/doctyper/
 
 You can insert the script in the IE8 section of your website's head, next to `html5shiv` and `respond.js`
 
-    <!--[if lt IE 9]>
-      <script src="js/css3-polyfill.js"></script>
-    <![endif]-->
+```html
+<!--[if lt IE 9]>
+  <script src="js/css3-polyfill.min.js"></script>
+<![endif]-->
+```
 
 Or you can require it with bower
 
