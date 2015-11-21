@@ -13,7 +13,7 @@ CSS3 Polyfill is a collection of polyfills for the main CSS3 features:
 
 It doesn't include other properties such as `box-shadow`, `border-radius` or `linear-gradient` as you usually shouldn't care about providing a fallback for minor graphical issues, if you want you can [provide css fallbacks yourself](https://css-tricks.com/css3-gradients/).
 
-For a `flexbox` fallback you can check out [flexie](https://github.com/doctyper/flexie), remember flexbox isn't supported in IE9 as well.
+If you use `flexbox` extensively and you want a fallback you can check out [flexie](https://github.com/doctyper/flexie), remember flexbox isn't supported in IE9 as well.
 
 ##Usage
 
