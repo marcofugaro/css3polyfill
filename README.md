@@ -17,14 +17,11 @@ For a `flexbox` fallback you can check out [flexie](https://github.com/doctyper/
 
 ##Usage
 
-You can insert the script in the IE8 section of your website's head, next to `html5shiv` and `respond.js`
+You can insert the script in the IE8 or lower section of your website's head, usually just below `html5shiv` and `respond.js`
 
 ```html
 <!--[if lt IE 9]>
-  <script src="js/css3-polyfill.min.js"></script>
+  ...
+  <script src="https://cdn.jsdelivr.net/css3polyfill/1.0.0/css3polyfill.min.js"></script>
 <![endif]-->
 ```
-
-Or you can require it with bower
-
-    bower install css3polyfill
