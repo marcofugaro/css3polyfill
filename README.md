@@ -22,6 +22,6 @@ You can insert the script in the IE8 or lower section of your website's head, us
 ```html
 <!--[if lt IE 9]>
   ...
-  <script src="https://cdn.jsdelivr.net/css3polyfill/1.0.0/css3polyfill.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/marcofugaro/css3polyfill@1.0/css3polyfill.min.js"></script>
 <![endif]-->
 ```
